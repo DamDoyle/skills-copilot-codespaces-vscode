@@ -1,70 +1,26 @@
 // Create web server
+// 1. Create a web server
+// 2. Create a URL
+// 3. Read the comments.json file
+// 4. Return the contents of the comments.json file
+// 5. Display the contents of the comments.json file in the browser
 
-var http = require('http');
-var url = require('url');
-var fs = require('fs');
-var qs = require('querystring');
-var mime = require('mime');
-var path = require('path');
-var comments = require('./comments');
+// 1. Create a web server
+const express = require('express');
+const app = express();
 
-var server = http.createServer(function (req, res) {
-    var pathname = url.parse(req.url).pathname;
-    if (pathname === '/') {
-        pathname = '/index.html';
-    }
-    if (pathname === '/index.html') {
-        res.writeHead(200, {
-            'Content-Type': 'text/html'
-        });
-        fs.readFile(path.join(__dirname, pathname), 'utf-8', function (err, data) {
-            if (err) throw err;
-            res.end(data);
-        });
-    } else if (pathname === '/comments.json') {
-        if (req.method === 'GET') {
-            comments.getComments(function (err, comments) {
-                if (err) {
-                    res.writeHead(500);
-                    res.end();
-                    return;
-                }
-                res.writeHead(200, {
-                    'Content-Type': 'application/json'
-                });
-                res.end(JSON.stringify(comments));
-            });
-        } else if (req.method === 'POST') {
-            var body = '';
-            req.on('data', function (chunk) {
-                body += chunk;
-            });
-            req.on('end', function () {
-                var comment = qs.parse(body);
-                comments.addComment(comment, function (err) {
-                    if (err) {
-                        res.writeHead(500);
-                        res.end();
-                        return;
-                    }
-                    res.writeHead(200);
-                    res.end();
-                });
-            });
-        }
-    } else {
-        fs.readFile(path.join(__dirname, pathname), function (err, data) {
-            if (err) {
-                res.writeHead(404);
-                res.end();
-                return;
-            }
-            res.writeHead(200, {
-                'Content-Type': mime.lookup(pathname)
-            });
-            res.end(data);
-        });
-    }
+// 2. Create a URL
+app.get('/comments', function (req, res) {
+  // 3. Read the comments.json file
+  const fs = require('fs');
+  fs.readFile('comments.json', 'utf8', function (err, data) {
+    if (err) throw err;
+    // 4. Return the contents of the comments.json file
+    res.send(data);
+  });
 });
 
-server.listen(3000);
+// 5. Display the contents of the comments.json file in the browser
+app.listen(3000, function () {
+  console.log('Listening on port 3000');
+});
